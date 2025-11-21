@@ -80,7 +80,47 @@
 \subsection{Environment Design}
 \label{subsec:environment}
 
-% 環境設計
+本研究では、環境としてCoin Game~\cite{lerer2018maintaining}を採用する。Coin Gameは、2人のエージェント（赤と青）が$N \times N$のグリッド上でコインを集めるマルチエージェント環境である。
+各ステップにおいて、グリッド上にランダムな色のコイン（赤または青）が1つ出現する。エージェントがコインの位置に移動すると、そのコインを獲得し、報酬$+1$を得る。しかし、エージェントが自分と異なる色のコインを獲得した場合、もう一方のエージェントに$-2$の罰則が与えられる。自身の色のコインを獲得した場合は、相手への罰則はない。
+
+この報酬構造により、Coin Gameは囚人のジレンマ（PD）と同様の構造を持つ。利己的なエージェントは、色に関わらず全てのコインを獲得しようとする（裏切り）が、双方がこの戦略を取ると互いに罰則を与え合い、全体としての利得は低下する。双方が自身の色のコインのみを獲得する（協力）ことで、社会的総余剰は最大化される。
+本研究では、この環境を高次元の画像観測（例：$32 \times 32$ピクセル）としてエージェントに提示する。
+
+エージェントの行動は、抽象的には「自分のコインを取る」、「相手のコインを取る」、「コインを取らない」の3つに分類できる。それぞれの行動に対する利得構造を表\ref{tab:payoff_matrix}に示す。
+
+\begin{table}[h]
+\centering
+\caption{Coin Gameにおける行動と利得構造}
+\label{tab:payoff_matrix}
+\begin{tabular}{lcc}
+\hline
+行動 & 自身の利得 & 相手への利得 \\
+\hline
+自分のコインを取る & $+1$ & $0$ \\
+相手のコインを取る & $+2$ & $-3$ \\
+コインを取らない & $0$ & $0$ \\
+\hline
+\end{tabular}
+\end{table}
+
+
+Prisonner's Dilemmaの利得構造は以下の不等式で表される。
+T>R>P>S
+上記のPayoffMatrixは
+R=1
+T=2
+S=-2
+P=-1
+となっており、囚人のジレンマの条件を満たしており、かつコイン獲得の行動が明確に定義されている。
+
+
+
+\subsection{Agent Architecture}
+\label{subsec:agent}
+
+エージェントの基本モデル（BasicModel）として、HarmonyDreamに基づく深層強化学習エージェントを採用する。
+各エージェントは、環境からの画像観測を入力とし、CNNによって特徴量を抽出した後、LSTM等のリカレント層を経て、行動方策$\pi(a|s)$と状態価値$V(s)$を出力する。
+このBasicModelは、自身の割引累積報酬の最大化を目的として学習される。他者への利得や罰則は直接的な報酬関数には含まれないため、標準的な強化学習アルゴリズムでは、他者のコインも奪う非協力的な行動に収束する傾向がある。本研究では、このBasicModelをベースとし、世界モデルによる拡張を行う。
 
 \subsection{World Model Architecture}
 \label{subsec:architecture}
@@ -138,6 +178,11 @@ New Zealand, 2024.
 \bibitem{foerster2018learning}
 Foerster, Jakob, Richard Y. Chen, Maruan Al-Shedivat, Shimon Whiteson, Pieter Abbeel, and Igor Mordatch.
 \textit{Learning with Opponent-Learning Awareness.}
+2018.
+
+\bibitem{lerer2018maintaining}
+Lerer, Adam, and Alexander Peysakhovich.
+\textit{Maintaining cooperation in complex social dilemmas using deep reinforcement learning.}
 2018.
 
 \end{thebibliography}
