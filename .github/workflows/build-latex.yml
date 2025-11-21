@@ -31,11 +31,23 @@ jobs:
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
 
       - name: Upload PDF artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: paper-pdf
           path: paper/tex/main.pdf
           retention-days: 90
+
+      - name: Upload LaTeX logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-logs
+          path: |
+            paper/tex/main.log
+            paper/tex/main.aux
+            paper/tex/main.fls
+          retention-days: 30
 
       - name: Create Release on Tag
         if: startsWith(github.ref, 'refs/tags/')
