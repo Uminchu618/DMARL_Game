@@ -22,11 +22,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Japanese fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
-
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
@@ -34,6 +29,9 @@ jobs:
           working_directory: paper/tex
           latexmk_use_xelatex: true
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+          pre_compile: |
+            apt-get update && apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+            fc-cache -fv
 
       - name: Upload PDF artifact
         if: success()
