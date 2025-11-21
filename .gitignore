@@ -215,6 +215,5 @@ __marimo__/
 *.fls
 *.log
 *.out
-*.pdf
 *.synctex.gz
 *.toc

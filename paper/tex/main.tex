@@ -177,30 +177,69 @@ TFT戦略には明確な利点がある。相手に裏切られたらやり返�
 
 % アーキテクチャ
 
-\subsection{Counterfactual Reasoning and Credit Assignment}
-\label{subsec:counterfactual}
-
-% 反事実推論とクレジット割当
-
 \section{Experiments}
 \label{sec:experiments}
 
-% ここに実験設定と結果を記述
+本研究では、世界モデルを用いた深層強化学習エージェントが、囚人のジレンマ構造を持つCoin Game環境において協力行動を獲得できるかを検証する。特に、異なる固定戦略エージェントとの相互作用を通じて、学習エージェントがどのように適応し、協力的な行動を学習するかを分析する。
 
 \subsection{Experimental Setup}
 \label{subsec:setup}
 
-% 実験設定
+\subsubsection{Environment Configuration}
+
+Coin Game環境は以下のパラメータで設定する：
+\begin{itemize}
+    \item グリッドサイズ：$L = 32 \times 32$
+    \item エージェント数：$M = 2$（1体は学習エージェント、もう1体は固定戦略エージェント）
+    \item コイン数：各色$N = 10$個
+    \item エピソード長：$T = 100$ステップ
+    \item 観測空間：$32 \times 32 \times 3$ (RGB画像)
+    \item 行動空間：5次元離散（上下左右、静止）
+\end{itemize}
+
+利得構造は表\ref{tab:payoff_matrix}に示した通り
+
+\subsubsection{Agent Configuration}
+
+\textbf{学習エージェント}には、DreamerV3ベースのアーキテクチャを採用する。
+\textbf{固定戦略エージェント}として、WSLS (Win-Stay-Lose-Shift)戦略を実装したエージェントを用いる。WSLS戦略は、前ステップで正の利得を得た場合は同じ行動（協力または裏切り）を継続し、負または0の利得の場合は行動を切り替える。Coin Game環境における実装では、以下のように動作する：
+\begin{enumerate}
+    \item 前ステップの報酬が正（$r > 0$）の場合：同じ色のターゲット（自分の色のコインまたは相手の色のコイン）を維持
+    \item 前ステップの報酬が非正（$r \leq 0$）の場合：ターゲットの色を切り替える
+    \item 選択したターゲット色の最も近いコインに向かって移動
+\end{enumerate}
+
+\subsubsection{Training Protocol}
+
+実験は以下の手順で実施する：
+\begin{enumerate}
+    \item \textbf{Phase 1: WSLS戦略との対戦}（0--500kステップ）
+    \begin{itemize}
+        \item 学習エージェントをWSLS戦略エージェントと対戦させる
+        \item 学習エージェントは環境との相互作用を通じて方策を更新
+        \item WSLS戦略エージェントのパラメータは固定
+    \end{itemize}
+    
+    \item \textbf{Phase 2: 自己対戦}（500k--1Mステップ、オプション）
+    \begin{itemize}
+        \item Phase 1で学習したエージェント同士を対戦させる
+        \item 両エージェントが同時に学習を継続
+        \item 相互適応と協力の安定性を検証
+    \end{itemize}
+\end{enumerate}
+
+各フェーズにおいて、以下の指標を記録する：
+\begin{itemize}
+    \item 各エージェントの平均エピソード報酬
+    \item 協力率（自分の色のコインを取った割合）
+    \item 裏切り率（相手の色のコインを取った割合）
+    \item 社会的総余剰（両エージェントの報酬の合計）
+\end{itemize}
 
 \subsection{Results}
 \label{subsec:results}
 
 % 結果
-
-\subsection{Analysis}
-\label{subsec:analysis}
-
-% 分析
 
 \section{Discussion}
 \label{sec:discussion}
