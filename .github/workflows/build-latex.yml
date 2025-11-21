@@ -27,15 +27,31 @@ jobs:
         with:
           root_file: main.tex
           working_directory: paper/tex
-          latexmk_use_xelatex: true
-          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+          latexmk_use_lualatex: true
+          args: -pdf -file-line-error -interaction=nonstopmode
+          pre_compile: |
+            tlmgr update --self
+            tlmgr install luatexja luatexja-fontspec
+          latexmk_shell_escape: true
 
       - name: Upload PDF artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: paper-pdf
           path: paper/tex/main.pdf
           retention-days: 90
+
+      - name: Upload LaTeX logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-logs
+          path: |
+            paper/tex/main.log
+            paper/tex/main.aux
+            paper/tex/main.fls
+          retention-days: 30
 
       - name: Create Release on Tag
         if: startsWith(github.ref, 'refs/tags/')
