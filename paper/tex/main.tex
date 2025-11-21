@@ -1,3 +1,4 @@
+%!TEX program = xelatex
 \documentclass[11pt,a4paper]{article}
 
 % XeLaTeX用の日本語設定
@@ -77,14 +78,16 @@
 
 % ここに提案手法を記述
 
-\subsection{Environment Design}
+\subsection{Environment: Coin Game}
 \label{subsec:environment}
 
-本研究では、環境としてCoin Game~\cite{lerer2018maintaining}を採用する。Coin Gameは、2人のエージェント（赤と青）が$N \times N$のグリッド上でコインを集めるマルチエージェント環境である。
-各ステップにおいて、グリッド上にランダムな色のコイン（赤または青）が1つ出現する。エージェントがコインの位置に移動すると、そのコインを獲得し、報酬$+1$を得る。しかし、エージェントが自分と異なる色のコインを獲得した場合、もう一方のエージェントに$-2$の罰則が与えられる。自身の色のコインを獲得した場合は、相手への罰則はない。
+\subsubsection{State Representation and Agent Identification}
+
+本研究では、環境としてCoin Game~\cite{lerer2018maintaining}を採用する。Coin Gameは、任意の数$M$のエージェントが$L \times L$のグリッド上でコインを集めるマルチエージェント環境である。エージェントはそれぞれ異なる色（例：赤と青）で表現される。
+各ステップにおいて、グリッド上に自身か相手と同じ色のコインがそれぞれ$N$個ランダムに出現する。エージェントがコインの位置に移動すると、そのコインを獲得し、報酬を得る。しかし、エージェントが自分と異なる色のコインを獲得した場合、自身は報酬を得、もう一方のエージェントに罰則が与えられる。自身の色のコインを獲得した場合は、相手への罰則はない。
 
 この報酬構造により、Coin Gameは囚人のジレンマ（PD）と同様の構造を持つ。利己的なエージェントは、色に関わらず全てのコインを獲得しようとする（裏切り）が、双方がこの戦略を取ると互いに罰則を与え合い、全体としての利得は低下する。双方が自身の色のコインのみを獲得する（協力）ことで、社会的総余剰は最大化される。
-本研究では、この環境を高次元の画像観測（例：$32 \times 32$ピクセル）としてエージェントに提示する。
+本研究では、この環境を画像観測（１つのグリッドセル＝ピクセル）としてエージェントに提示する。
 
 エージェントの行動は、抽象的には「自分のコインを取る」、「相手のコインを取る」、「コインを取らない」の3つに分類できる。それぞれの行動に対する利得構造を表\ref{tab:payoff_matrix}に示す。
 
@@ -104,23 +107,70 @@
 \end{table}
 
 
-Prisonner's Dilemmaの利得構造は以下の不等式で表される。
-T>R>P>S
-上記のPayoffMatrixは
-R=1
-T=2
-S=-2
-P=-1
-となっており、囚人のジレンマの条件を満たしており、かつコイン獲得の行動が明確に定義されている。
+Prisoner's Dilemmaの利得構造は以下の不等式で表される。
+\begin{equation}
+T > R > P > S
+\end{equation}
+本環境における利得行列（Payoff Matrix）を表\ref{tab:pd_payoff}に示す。
+各パラメータは
+$R=1$, $T=2$, $S=-2$, $P=-1$
+となっており、囚人のジレンマの条件を満たしている。
+つまり、相手の戦略にかかわらず、各エージェントにとって最適な戦略は「相手のコインを取る（裏切り）」であるが、双方がこの戦略を取ると互いに罰則を与え合い、期待利得は低い。一方、双方が「自分のコインを取る（協力）」戦略を取れば、期待利得は罰則の状態に比べて大きい。
 
+\begin{table}[h]
+\centering
+\caption{利得行列 (Payoff Matrix)}
+\label{tab:pd_payoff}
+\begin{tabular}{c|ccc}
+\hline
+ & 協力 (Cooperate) & 裏切り (Defect) & コインを取らない (No-op) \\
+\hline
+協力 (Cooperate) & $1, 1$ & $-2, 2$ & $1, 0$ \\
+裏切り (Defect) & $2, -2$ & $-1, -1$ & $2, -3$ \\
+コインを取らない (No-op) & $0, 1$ & $-3, 2$ & $0, 0$ \\
+\hline
+\end{tabular}
+\end{table}
 
+\subsection{Fixed Strategy Agents}
+\label{subsec:fixed_strategies}
+
+深層学習ベースのエージェントに加えて、ゲーム理論で研究されてきた古典的な固定戦略を実装したエージェントを定義し、学習エージェントとの相互作用を検証する。これにより、学習エージェントが異なる戦略パターンに対してどのように適応するかを分析できる。
+
+\subsubsection{Always Defect戦略（ALLD）}
+
+ALLD戦略は、常に裏切り行動を選択する戦略である。Coin Game環境においては、\textbf{最も近いコインを取る}という行動として実装される。この戦略では、コインの色に関係なく、最も近いコインを常に獲得しようとする。この戦略は短期的な利得を最大化しようとするが、相手エージェントに罰則を与え続けるため、長期的な社会的総余剰は低くなる。
+
+\subsubsection{Tit-for-Tat戦略（TFT）}
+
+最も有名な戦略は、しっぺ返し戦略(Tit-for-Tat, TFT)である~\cite{axelrod1981evolution}。この戦略は、\textbf{相手が前回やったことと同じことをする}という単純だが効果的な戦略である。もし前回に相手が裏切り(D)を出してきたら、今回は自分も裏切り(D)を出し、相手が協力(C)を出していたら、自分も協力(C)を出す。
+
+TFT戦略には明確な利点がある。相手に裏切られたらやり返すので、\textbf{長期的な利得でどんな相手にも負けることがない}という性質がある。また、初手で協力することから「寛容さ」を示し、相互協力の成立を促進する。
+
+しかし、TFT戦略には明確な弱点もある。それは\textbf{エラーに対して弱く協力状態が維持できない}という点である。TFT戦略を2人とも取ったとしよう。この場合、相互協力状態から始めたとしても、誰かがエラーで間違えて裏切ってしまったとする。そうすると、相手が裏切り、その次には自分が裏切り、という\textbf{裏切りの連鎖}に陥ってしまうという問題点がある
+
+% 図の参照は後で追加可能
+% \begin{figure}[h]
+% \centering
+% \includegraphics[width=0.6\textwidth]{tft_error_chain.png}
+% \caption{しっぺ返し（TFT）戦略におけるエラーの連鎖}
+% \label{fig:tft_problem}
+% \end{figure}
+
+\subsubsection{Win-Stay-Lose-Shift戦略（WSLS）}
+
+他に有名な戦略としては Win-Stay-Lose-Shift (WSLS) という戦略がある~\cite{nowak1993strategy}。WSLSは、TFTと同じように前回の結果に応じて行動を変える戦略であるが、\textbf{相手の行動ではなく自分の利得}に基づいて判断する点が異なる。
+
+具体的には、自分の利得が良い場合（$(C,C)$または$(D,C)$の場合）にはその行動を続け(Win-Stay)、良くなかった場合（$(C,D)$または$(D,D)$の場合）には行動を変える(Lose-Shift)という戦略である。
+
+この戦略の良いところは、\textbf{エラーに対して強い}という点である。TFTとは異なり、エラーがあったとしても数ステップ後には相互協力状態に戻ることになる。これは、WSLS戦略が結果に基づいて適応的に行動を変更するためである。
+
+しかし、WSLS戦略にも致命的な弱点がある。相手が常に裏切り(D)を出すALLD戦略のようなエージェントに対しては、\textbf{一方的に搾取されてしまう}という問題がある。WSLS戦略は$(C,D)$の状態で行動を変えて裏切りに転じるが、その後$(D,D)$となり再び行動を変えて協力に戻ってしまうため、常に不利な状態から抜け出せない。
 
 \subsection{Agent Architecture}
 \label{subsec:agent}
 
-エージェントの基本モデル（BasicModel）として、HarmonyDreamに基づく深層強化学習エージェントを採用する。
-各エージェントは、環境からの画像観測を入力とし、CNNによって特徴量を抽出した後、LSTM等のリカレント層を経て、行動方策$\pi(a|s)$と状態価値$V(s)$を出力する。
-このBasicModelは、自身の割引累積報酬の最大化を目的として学習される。他者への利得や罰則は直接的な報酬関数には含まれないため、標準的な強化学習アルゴリズムでは、他者のコインも奪う非協力的な行動に収束する傾向がある。本研究では、このBasicModelをベースとし、世界モデルによる拡張を行う。
+エージェントのモデルとして、DreamerV3に基づく深層強化学習エージェントを採用する。
 
 \subsection{World Model Architecture}
 \label{subsec:architecture}
@@ -184,6 +234,18 @@ Foerster, Jakob, Richard Y. Chen, Maruan Al-Shedivat, Shimon Whiteson, Pieter Ab
 Lerer, Adam, and Alexander Peysakhovich.
 \textit{Maintaining cooperation in complex social dilemmas using deep reinforcement learning.}
 2018.
+
+\bibitem{axelrod1981evolution}
+Axelrod, Robert, and William D. Hamilton.
+\textit{The Evolution of Cooperation.}
+Science 211, no. 4489 (1981): 1390--96.
+\url{https://doi.org/10.1126/science.7466396}
+
+\bibitem{nowak1993strategy}
+Nowak, Martin, and Karl Sigmund.
+\textit{A Strategy of Win-Stay, Lose-Shift That Outperforms Tit-for-Tat in the Prisoner's Dilemma Game.}
+Nature 364, no. 6432 (1993): 56--58.
+\url{https://doi.org/10.1038/364056a0}
 
 \end{thebibliography}
 
