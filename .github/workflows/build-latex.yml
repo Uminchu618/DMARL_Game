@@ -1,0 +1,46 @@
+name: Build LaTeX Paper
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "paper/tex/**"
+      - ".github/workflows/build-latex.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "paper/tex/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper/tex
+          latexmk_use_xelatex: true
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-pdf
+          path: paper/tex/main.pdf
+          retention-days: 90
+
+      - name: Create Release on Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: paper/tex/main.pdf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

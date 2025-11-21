@@ -1,0 +1,141 @@
+\documentclass[11pt,a4paper]{article}
+
+% パッケージ
+\usepackage[utf8]{inputenc}
+\usepackage[japanese]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{hyperref}
+\usepackage{natbib}
+
+% タイトル情報
+\title{世界モデルを用いた深層マルチエージェント強化学習における\\囚人のジレンマ環境下での協力の創発}
+\author{著者名}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+本研究では、深層マルチエージェント強化学習(DMARL)における協力の創発を、囚人のジレンマ(PD)のようなジレンマ構造が明確な環境下で検証する。既往研究では世界モデルを用いた反事実想像により協調行動の獲得が報告されているが、用いられる環境にはゲーム理論的なジレンマ性が弱いものが含まれる。本研究では、Coin Gameのような高次元観測を持つPD型環境において、世界モデルが協力創発に寄与しうるか、またそのために必要な拡張(反事実評価・クレジット割当・因果的報酬成形等)は何かを検討する。
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+独立に行動するAIエージェントが本質的に互恵的な性質を備えることは、社会に破滅的な影響を及ぼさないための重要条件である。一方で、AIエージェントは基本的に自己利益的であり、報酬最大化を目標として動作する。
+
+このギャップを埋めるための手法は、古くからゲーム理論の枠組みで研究され、Reputation、Image Score、シグナリングなどが提案されてきた。2000年代初頭の研究では、エージェントは単純な戦略を用い、レプリケータダイナミクス等を通じて進化ゲーム論の文脈で協力の創発が論じられてきた。
+
+近年は、深層学習・強化学習の進展により、深層マルチエージェント強化学習(DMARL)と協力の創発に関する研究が急速に活発化している。DMARLでは、複数の自律エージェントが環境内で相互作用しながら、それぞれの目的を達成する方策を学習する。しかし、最適方策の獲得は次の理由から困難である。
+\begin{enumerate}
+    \item \textbf{非定常性}：各エージェントの方策が同時に更新されるため、単一エージェントのMDPで想定される定常性仮定が破られる。
+    \item \textbf{計算複雑性}：次状態の予測には他エージェントの行動推論が不可欠であり、エージェント数の増加とともに複雑さが増大する~\cite{wong2023deep}。
+\end{enumerate}
+
+これらの問題に対処する一つの方向として、\textbf{世界モデル(World Model)}の応用が進んでいる。たとえばChaiらは、DreamerV2を拡張し、世界モデル上で反事実想像(Counterfactual Imagination)を行うことで、複数エージェントの協調を促し、効率的な方策の獲得を報告している~\cite{chai2024aligning}。
+
+しかし、既往研究で用いられる環境にはゲーム理論的なジレンマ性が弱いものが含まれる。たとえばHalfCheetahのように役割分担(前脚・後脚)がある設定では、両者が前進を選ぶときの利得$R$が、一方のみが前進(相手は別行動)したときの利得$T$より大きい($R > T$)と考えられ、\textbf{囚人のジレンマ(PD)}に見られる$T > R$の関係が成立しない。したがって、\textbf{明確なジレンマ構造(PD型)}における協力創発の検証としては不十分である。
+
+本研究では、PDのようにジレンマ構造が明確な環境において、世界モデルが協力の創発に寄与しうるか、またそのために必要な\textbf{拡張(反事実評価・クレジット割当・因果的報酬成形等)}は何かを検討する。環境としては、Coin Gameのように構造はシンプルだが、高次元観測(例：$32 \times 32$のマップ)を持ち、PD的な利得構造を明示的に設計できる設定を採用する~\cite{foerster2018learning}。
+
+\section{Related Work}
+\label{sec:related}
+
+% ここに関連研究を記述
+
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+% ここに予備知識(MARL、世界モデル、ゲーム理論等)を記述
+
+\subsection{Multi-Agent Reinforcement Learning}
+\label{subsec:marl}
+
+% MARLの定義
+
+\subsection{World Models}
+\label{subsec:worldmodels}
+
+% 世界モデルの説明
+
+\subsection{Game Theory and Prisoner's Dilemma}
+\label{subsec:gametheory}
+
+% ゲーム理論とPDの説明
+
+\section{Methodology}
+\label{sec:methodology}
+
+% ここに提案手法を記述
+
+\subsection{Environment Design}
+\label{subsec:environment}
+
+% 環境設計
+
+\subsection{World Model Architecture}
+\label{subsec:architecture}
+
+% アーキテクチャ
+
+\subsection{Counterfactual Reasoning and Credit Assignment}
+\label{subsec:counterfactual}
+
+% 反事実推論とクレジット割当
+
+\section{Experiments}
+\label{sec:experiments}
+
+% ここに実験設定と結果を記述
+
+\subsection{Experimental Setup}
+\label{subsec:setup}
+
+% 実験設定
+
+\subsection{Results}
+\label{subsec:results}
+
+% 結果
+
+\subsection{Analysis}
+\label{subsec:analysis}
+
+% 分析
+
+\section{Discussion}
+\label{sec:discussion}
+
+% ここに考察を記述
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% ここに結論を記述
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{wong2023deep}
+Wong, Annie, Thomas Bäck, Anna V. Kononova, and Aske Plaat.
+\textit{Deep Multiagent Reinforcement Learning: Challenges and Directions.}
+Artificial Intelligence Review 56, no. 6 (2023): 5023--56.
+\url{https://doi.org/10.1007/s10462-022-10299-x}
+
+\bibitem{chai2024aligning}
+Chai, Jiajun.
+\textit{Aligning Credit for Multi-Agent Cooperation via Model-Based Counterfactual Imagination.}
+New Zealand, 2024.
+
+\bibitem{foerster2018learning}
+Foerster, Jakob, Richard Y. Chen, Maruan Al-Shedivat, Shimon Whiteson, Pieter Abbeel, and Igor Mordatch.
+\textit{Learning with Opponent-Learning Awareness.}
+2018.
+
+\end{thebibliography}
+
+\end{document}
