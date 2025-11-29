@@ -1,0 +1,14 @@
+[project]
+name = "rl-lab"
+version = "0.1.0"
+description = "DMARL research utilities and environments"
+authors = [{ name = "Researcher", email = "example@example.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "gymnasium>=0.29.0",
+    "numpy>=1.26.0",
+    "imageio>=2.34.0",
+]
+
+[tool.uv]
+package = true
